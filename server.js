@@ -36,7 +36,15 @@ wss.on('connection', (socket, req) => {
   const message = { "type": "system", "text": username + " joined" }
   console.log(message)
   socket.on('error', console.error);
-  socket.on('message', data => console.log('received: %s', data));
+  socket.on('message', data => {
+    const {username, text} = JSON.parse(data.toString())
+    const message_out = JSON.stringify({type: "chat", username, text})
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message_out);
+      }
+    });
+  });
   socket.send(JSON.stringify(message));
 });
 
