@@ -45,7 +45,11 @@ wss.on('connection', (socket, req) => {
       }
     });
   });
-  socket.send(JSON.stringify(message));
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  })
 });
 
 server.listen(3001, () => console.log("http://localhost:" + 3001))
