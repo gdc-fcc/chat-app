@@ -1,20 +1,12 @@
 import http from 'http';
 import fs from 'fs';
 import { WebSocketServer } from 'ws';
-
 import path from "path";
 
 const PORT = 3001;
 
 const server = http.createServer((request, response) => {
-  var filePath = '.' + request.url;
-  if (filePath == "./") {
-    filePath = "./public/index.html"
-  } else {{
-    filePath = "./public" + request.url
-  }}
-  console.log(filePath)
-
+  const filePath = request.url == "/" ?  "./public/index.html" : "./public" + request.url
   fs.readFile(filePath, function(error, content) {
     if (error) {
       response.writeHead(500);
@@ -50,4 +42,4 @@ wss.on('connection', (socket, req) => {
   socket.on("close", data => broadcast({ type: 'system', text: `${username} left` }))
 });
 
-server.listen(3001, () => console.log("http://localhost:" + 3001))
+server.listen(PORT, () => console.log(`launching chat on http://localhost:${PORT}`))
