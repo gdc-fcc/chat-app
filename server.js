@@ -50,6 +50,13 @@ wss.on('connection', (socket, req) => {
       client.send(JSON.stringify(message));
     }
   })
+  socket.on("close", data => {
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'system', text: `${username} left` }));
+      }
+    })
+  })
 });
 
 server.listen(3001, () => console.log("http://localhost:" + 3001))
