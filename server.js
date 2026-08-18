@@ -29,34 +29,25 @@ const server = http.createServer((request, response) => {
 
 const wss = new WebSocketServer({server})
 
-wss.on('connection', (socket, req) => {
-  const username = new URL(req.url, "http://localhost").searchParams.get(
-    "username",
-  );
-  const message = { "type": "system", "text": username + " joined" }
-  console.log(message)
-  socket.on('error', console.error);
-  socket.on('message', data => {
-    const {username, text} = JSON.parse(data.toString())
-    const message_out = JSON.stringify({type: "chat", username, text})
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message_out);
-      }
-    });
-  });
+const broadcast = message => {
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message));
     }
-  })
-  socket.on("close", data => {
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'system', text: `${username} left` }));
-      }
-    })
-  })
+  });
+}
+
+wss.on('connection', (socket, req) => {
+  const username = new URL(req.url, "http://localhost").searchParams.get(
+    "username",
+  );
+  socket.on('error', console.error);
+  socket.on('message', data => {
+    const {username, text} = JSON.parse(data.toString())
+    broadcast({type: "chat", username, text})
+  });
+  broadcast({"type": "system", "text": username + " joined"})
+  socket.on("close", data => broadcast({ type: 'system', text: `${username} left` }))
 });
 
 server.listen(3001, () => console.log("http://localhost:" + 3001))
